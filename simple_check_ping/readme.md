@@ -32,7 +32,8 @@ Também no menu **Administration** acesse **User Groups** para criar um grupo de
 
 O grupo de usuários no exemplo acima tem acesso de leitura (_Read_) no grupo específico de _hosts_ chamado **filial-poa**. 
 > Grupo de Usuários e Grupos de Hosts por ser um ponto de confusão!
-
+## Criar HOST GROUP
+Este passo é simples e intuitivo. A dica é definir um nome que represente o grupo de _hosts_ (exemplo: ativos-filial-poa )
 ## Criar HOST e atribuir grupo
 Para criar o _hosts_ precisamos atentar para **atribuir ao grupo** que contém as devidas permssiões sobre os _hosts_ a serem monitorados, selecionamos na interface o _Agent_ apontando para o IP alvo, mas ignorando a porta padrão 10050 (no fim das contas será usado ICMP).
 
@@ -45,10 +46,15 @@ Na guia **_Templates_** é fundamental selecionar o template **ICMP Ping**. Ele 
 > Pode ser necessário fazer liberações de _firewall_ na rota entre o Zabbix Server e o IP alvo do PING (ICMP).
 
 ## Criar USER ROLES
-Em **Configuration/User Roles** são definido papéis, com respectivas permissões no sistema. Esses papéis, ao serem vinculado a um conta de usuário, atribuem a esse usuário as permissões no sistema. No cenário onde o foco é simplesmente a checagem via Ping e notificação por e-mail, foi criado um papel bem restritivo, pegando o _User Type_ Admin como arquétipo, porém retirando boa parte das permissões, deixando somente itens relacionados às notificações ( requer revisão com foco em restringir mais as permissões).
+Em **Configuration/User Roles** são definido papéis, com respectivas permissões no sistema. Esses papéis, ao serem vinculado a uma conta de usuário, atribuem a esse usuário as permissões no sistema. 
+
+No cenário onde o foco é simplesmente a checagem via Ping e notificação por e-mail, foi criado um papel bem restritivo, pegando o _User Type_ Admin como arquétipo, porém retirando boa parte das permissões, deixando somente itens relacionados às notificações ( requer revisão com foco em restringir mais as permissões).
 ![image](https://user-images.githubusercontent.com/6537456/130984688-03500f13-9450-40be-9ed8-019d8159af72.png)
 
 > Não foi necessário habilitar nada relacionado a API na _user role_
+
+Portanto, se _User Groups_ servem, entre outras coisas, para manipular permissões de usuários sobre grupos de _hosts_
+(_Host Groups_) as _User Roles_ servem para ajustar as permissões do usuário no sistema.
 
 ## Criar USER
 Os pontos de cuidado para criação do usuário é preencher corretamente os dados e **atribuir o grupo** (é o que garante a permissão de acesso aos hosts da filial), cadastrar uma mídia atentando para o tipo (nesse caso E-mail) e na guia **permissões** deve-se atribuir a _user role_ definida anteriomente, que vai delimitar as permissões do usuário dentro do sistema.
@@ -58,12 +64,39 @@ Imaginando que o foco aqui é somente notificar as filiais sobre indisponibilida
 
 ![image](https://user-images.githubusercontent.com/6537456/130985670-c08eec00-7f7c-4b20-acfc-a92f1dfad4cd.png)
 
-## Criar HOST GROUP
+## Criar Action para notificação por e-mail
+A Action reponsável por disparar um e-mail caso o IP alvo esteja indisponível também é bastante simples e depende do cadastro correto da mídia nas configurações do usuários, além óbvio das configurações SMTP para envio de e-mail a partir do Zabbix.
+
+![image](https://user-images.githubusercontent.com/6537456/130994469-4e51946d-259e-4205-964a-f986bacbddc2.png)
+
+Em **Operations** são definidos os disparos de e-mail, tanto em caso de problemas quanto notificões sobre o restabelecimento do Ping.
+![image](https://user-images.githubusercontent.com/6537456/130994979-f9bcdba1-e8d9-4b0c-aabb-d33b7234df00.png)
 
 
+# Conclusão
+Esta é uma solução muito simplificada de monitoramento de ativos sem necessidade de instalação do agente nos alvos que trás valor pela possibilidade de monitoramento remoto com alertas por e-mail, Discord, Rocket Chat, Telegram e vários outras opções. 
 
-## Aplicar user roles e atribuir user group aos usuários
+A forma como o Zabbix lida com as permissões (_Host Groups e User Roles_) confudem um pouco no início mas logo se esclarece.
 
+Na maioria dos casos, os **Alertas** só fazem sentido se envolvam intervenção humana imediata, como é o caso de uma indisponibilidade total identificada por um Ping. No entanto, é preciso tomar cuidado com alertas em excesso, que possam gerar ruídos ou tirar os profissionais do foco sem necessariamente ter entregas de valor.
+
+O extrato abaixo foi retirado do livro [**Engenharia de Confiabilidade do Google**](https://www.amazon.com.br/Engenharia-Confiabilidade-Google-Administra-Sistemas/dp/8575225170) e pode dar uma luz quanto a isso:
+
+**Monitoração**
+
+*Alertas - saída válida mas não ideal pois depende que um humano tome uma atitude*
+
+*Ticket - o humano precisa tomar atitude mas não de imediato. O sistema trata a situação automaticamente. Se o humano tomar uma atitude em alguns dias, não haverá danos.*
+
+*Logging - registro para diagnóstico e investigação forense, expectativa é que ninguém leia a meno que outro fato exija isso.*
+
+> Seres humanos acrescentam latência
+
+# TO DO 
+
+- [ ] Ativar novas mídias como Rocket Chat, Discord e Telegram
+- [ ] Avaliar o ICMP Ping para usá-lo para identificar latência, nesse caso não gerando alertas  mas sim _Tickets_ que pudessem ser integrados ao sistema de chamado
+- [ ] Avaliar integração com Grafana para gerar paineis de monitoramento de disponibilidade e latência (_Dashboards_)
 
 
 
